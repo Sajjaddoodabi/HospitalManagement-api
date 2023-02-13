@@ -58,11 +58,20 @@ class BaseUser(AbstractUser):
 
 
 class Doctor(BaseUser):
-    department = models.CharField(choices=[], max_length=20, default='')
+    departments = [('General', 'General'),
+                   ('Cardiologist', 'Cardiologist'),
+                   ('Dermatologists', 'Dermatologists'),
+                   ('Emergency Medicine Specialists', 'Emergency Medicine Specialists'),
+                   ('Allergists/Immunologists', 'Allergists/Immunologists'),
+                   ('Anesthesiologists', 'Anesthesiologists'),
+                   ('Colon and Rectal Surgeons', 'Colon and Rectal Surgeons')
+                   ]
 
+    department = models.CharField(choices=departments, max_length=20, default='General')
+    address = models.CharField(max_length=300, null=True, blank=True)
 
-class Receptionist(BaseUser):
-    pass
+    def __str__(self):
+        return self.get_name()
 
 
 class Patient(BaseUser):
@@ -82,3 +91,10 @@ class Appointments(models.Model):
 
     def __str__(self):
         return f'{self.doctor.get_name()} - {self.patient.get_name()}'
+
+
+class Reception(models.Model):
+    appointment = models.ForeignKey(Appointments, on_delete=models.CASCADE, related_name='receptionist')
+
+    def __str__(self):
+        return self.appointment
