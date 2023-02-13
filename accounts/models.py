@@ -67,7 +67,7 @@ class Doctor(BaseUser):
                    ('Colon and Rectal Surgeons', 'Colon and Rectal Surgeons')
                    ]
 
-    department = models.CharField(choices=departments, max_length=20, default='General')
+    department = models.CharField(choices=departments, max_length=40, default='General')
     address = models.CharField(max_length=300, null=True, blank=True)
 
     def __str__(self):
