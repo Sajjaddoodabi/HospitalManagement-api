@@ -5,13 +5,13 @@ from django.db import models
 
 
 class UserManagement(BaseUserManager):
-    def create_user(self, email, is_active=True, is_staff=False, password=None):
+    def create_user(self, username, email, is_active=True, is_staff=False, password=None):
         if not password:
             raise ValueError('password is required!')
         if not email:
             raise ValueError('email is required!')
 
-        user_obj = self.model(email=email)
+        user_obj = self.model(email=email, username=username)
 
         user_obj.password = make_password(password)
         user_obj.staff = is_staff
@@ -19,8 +19,8 @@ class UserManagement(BaseUserManager):
         user_obj.save(using=self._db)
         return user_obj
 
-    def create_superuser(self, email, password=None):
-        user_obj = self.model(email=email, password=password)
+    def create_superuser(self, username, email, password=None):
+        user_obj = self.model(email=email, username=username, password=password)
         user_obj.is_staff = True
         user_obj.is_superuser = True
         user_obj.save(using=self._db)
@@ -29,7 +29,6 @@ class UserManagement(BaseUserManager):
 
 class BaseUser(AbstractUser):
     Roles = (('DOC', 'doctor'),
-             ('RES', 'receptionist'),
              ('PAT', 'patient'))
 
     profile_image = models.ImageField(
@@ -45,9 +44,14 @@ class BaseUser(AbstractUser):
     )
     role = models.CharField(choices=Roles, max_length=20, default='PAT')
     mobile = models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
     status = models.BooleanField(default=False)
 
     objects = UserManagement()
+
+    EMAIL_FIELD = "email"
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     @property
     def get_name(self):
@@ -71,12 +75,12 @@ class Doctor(BaseUser):
     address = models.CharField(max_length=300, null=True, blank=True)
 
     def __str__(self):
-        return self.get_name()
+        return self.get_name
 
 
 class Patient(BaseUser):
-    symptoms = models.CharField(max_length=200, null=False)
+    symptoms = models.CharField(max_length=200)
     address = models.CharField(max_length=300)
 
     def __str__(self):
-        return self.get_name()
+        return self.get_name
