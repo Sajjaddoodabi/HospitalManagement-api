@@ -103,4 +103,11 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    pass
+    def post(self, request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data = {
+            'massage': 'logged out successfully'
+        }
+
+        return response
