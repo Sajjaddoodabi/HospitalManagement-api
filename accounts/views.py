@@ -1,9 +1,13 @@
+import datetime
+
+import jwt
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Doctor, Patient
-from accounts.serializersf import DoctorSerializer, PatientSerializer
+from accounts.models import Doctor, Patient, BaseUser
+from accounts.serializers import DoctorSerializer, PatientSerializer
 
 
 class DoctorRegisterView(APIView):
@@ -35,10 +39,11 @@ class DoctorRegisterView(APIView):
             else:
                 serializer = DoctorSerializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # serializer = DoctorSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
-        # return Response(serializer.data)
+
+            # serializer = DoctorSerializer(data=request.data)
+            # serializer.is_valid(raise_exception=True)
+            # serializer.save()
+            # return Response(serializer.data)
 
 
 class PatientRegisterView(APIView):
@@ -63,7 +68,7 @@ class PatientRegisterView(APIView):
             try:
                 user = Patient.objects.create_user(username=username, email=email, password=password)
             except:
-                response = {'massage': 'email is already taken!'}
+                response = {'massage': 'email or username is already taken!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = PatientSerializer(user)
@@ -71,7 +76,30 @@ class PatientRegisterView(APIView):
 
 
 class LoginView(APIView):
-    pass
+    def post(self, request):
+        email = request.data['email']
+        password = request.data['password']
+        user = BaseUser.objects.filter(email=email).first()
+
+        if user is None:
+            raise AuthenticationFailed('User not found!')
+        if not user.check_password(password):
+            raise AuthenticationFailed('User not found!')
+
+        payload = {
+            'id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'iat': datetime.datetime.utcnow()
+        }
+        #
+        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        #
+        response = Response()
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.data = {
+            'jwt': token
+        }
+        return response
 
 
 class LogoutView(APIView):

@@ -7,7 +7,7 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         read_only_fields = ('role', 'status'),
-        fields = ['id', 'username', 'email', 'password', 'role', 'status']
+        fields = ['id', 'username', 'email', 'password', 'role', 'is_active']
         extra_kwargs = {
             'password': {'write_only': True}
         }

@@ -60,6 +60,11 @@ class BaseUser(AbstractUser):
         else:
             return self.email
 
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+        db_table = 'User'
+
 
 class Doctor(BaseUser):
     departments = [('General', 'General'),
