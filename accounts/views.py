@@ -111,3 +111,26 @@ class LogoutView(APIView):
         }
 
         return response
+
+
+class UserView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed('Unauthenticated!')
+        try:
+            payload = jwt.decode(token,'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Unauthenticated!')
+
+        user = BaseUser.objects.filter(id=payload['id']).first()
+
+        if not user:
+            raise AuthenticationFailed('User not found!')
+
+        if user.role == 'PAT':
+            serializer = PatientSerializer(user)
+        elif user.role == 'DOC':
+            serializer = DoctorSerializer(user)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
