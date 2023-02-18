@@ -5,15 +5,15 @@ from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer, Do
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    # doctor = DoctorSerializer(many=False, read_only=True)
-    # patient = PatientSerializer(many=False, read_only=True)
+    doct = DoctorMiniSerializer(read_only=True)
+    pati = PatientMiniSerializer(read_only=True)
 
     class Meta:
         model = Appointment
         read_only_fields = (
-                               'status',
+                               'status', 'doct', 'pati'
                            ),
-        fields = ['id', 'patient', 'doctor', 'day', 'appointment_time', 'status']
+        fields = ('id', 'pati', 'doct', 'day', 'appointment_time', 'status')
 
 
 class AppointmentMiniSerializer(serializers.ModelSerializer):
@@ -22,4 +22,4 @@ class AppointmentMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         read_only_fields = ('doctor',),
-        fields = ['id', 'doctor', 'day', 'appointment_time']
+        fields = ('id', 'doctor', 'day', 'appointment_time')

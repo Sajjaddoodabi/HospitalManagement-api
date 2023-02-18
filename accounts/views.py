@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Doctor, Patient, BaseUser
-from accounts.serializers import DoctorSerializer, PatientSerializer
+from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer
 
 
 class DoctorRegisterView(APIView):
@@ -30,14 +30,15 @@ class DoctorRegisterView(APIView):
                 response = {'massage': 'password field required!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             try:
-                user = Doctor.objects.create_user(username=username, email=email, password=password)
+                user = BaseUser.objects.create_user(username=username, email=email, password=password)
                 user.role = 'DOC'
                 user.save()
+                doctor = Doctor.objects.create(parent_user_id=user.id)
             except:
                 response = {'massage': 'email or username is already taken!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             else:
-                serializer = DoctorSerializer(user)
+                serializer = DoctorSerializer(doctor)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             # serializer = DoctorSerializer(data=request.data)
@@ -66,12 +67,13 @@ class PatientRegisterView(APIView):
                 response = {'massage': 'password field required!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             try:
-                user = Patient.objects.create_user(username=username, email=email, password=password)
+                user = BaseUser.objects.create_user(username=username, email=email, password=password)
+                patient = Patient.objects.create(parent_user_id=user.id)
             except:
                 response = {'massage': 'email or username is already taken!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             else:
-                serializer = PatientSerializer(user)
+                serializer = PatientSerializer(patient)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

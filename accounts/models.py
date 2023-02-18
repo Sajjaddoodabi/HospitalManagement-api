@@ -74,20 +74,14 @@ class BaseUser(AbstractUser):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email"]
 
-    @property
-    def get_name(self):
-        if self.username is not None:
-            return self.username
-        else:
-            return f'{self.first_name} {self.last_name}'
-
     class Meta:
         verbose_name = 'BaseUser'
         verbose_name_plural = 'BaseUsers'
         db_table = 'BaseUser'
 
 
-class Doctor(BaseUser):
+class Doctor(models.Model):
+    parent_user = models.OneToOneField(BaseUser, related_name='doctor', on_delete=models.CASCADE)
     department = models.CharField(choices=departments, max_length=40, default='General')
     address = models.CharField(max_length=300, null=True, blank=True)
 
@@ -95,21 +89,35 @@ class Doctor(BaseUser):
         verbose_name = 'Doctor'
         verbose_name_plural = 'Doctors'
 
+    @property
+    def get_name(self):
+        if self.parent_user.username is not None:
+            return self.parent_user.username
+        else:
+            return f'{self.parent_user.first_name} {self.parent_user.last_name}'
+
     def __str__(self):
         return f'{self.get_name} - {self.department}'
 
 
-class Patient(BaseUser):
-    requested_doctor = models.CharField(choices=departments, max_length=40, default='General')
-    symptoms = models.CharField(max_length=200)
-    address = models.CharField(max_length=300)
+class Patient(models.Model):
+    parent_user = models.OneToOneField(BaseUser, related_name='patient', on_delete=models.CASCADE)
+    symptoms = models.CharField(max_length=200, blank=True, null=True)
+    address = models.CharField(max_length=300, blank=True, null=True)
 
     class Meta:
         verbose_name = 'patient'
         verbose_name_plural = 'patients'
 
+    @property
+    def get_name(self):
+        if self.parent_user.username is not None:
+            return self.parent_user.username
+        else:
+            return f'{self.parent_user.first_name} {self.parent_user.last_name}'
+
     def __str__(self):
-        return f'{self.get_name} - {self.requested_doctor}'
+        return f'{self.get_name}'
 
 
 class TimesForTheDay(models.Model):
