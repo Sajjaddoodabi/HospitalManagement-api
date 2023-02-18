@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
@@ -74,10 +76,10 @@ class BaseUser(AbstractUser):
 
     @property
     def get_name(self):
-        if self.first_name and self.last_name is not None:
-            return f'{self.first_name} {self.last_name}'
-        else:
+        if self.username is not None:
             return self.username
+        else:
+            return f'{self.first_name} {self.last_name}'
 
     class Meta:
         verbose_name = 'BaseUser'
@@ -88,7 +90,6 @@ class BaseUser(AbstractUser):
 class Doctor(BaseUser):
     department = models.CharField(choices=departments, max_length=40, default='General')
     address = models.CharField(max_length=300, null=True, blank=True)
-    times = models.CharField(choices=Times, max_length=30, default='9')
 
     class Meta:
         verbose_name = 'Doctor'
@@ -109,3 +110,9 @@ class Patient(BaseUser):
 
     def __str__(self):
         return f'{self.get_name} - {self.requested_doctor}'
+
+
+class TimesForTheDay(models.Model):
+    Doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='doctor')
+    times = models.CharField(choices=Times, max_length=30, default='9')
+    day = models.DateField(default=datetime.date.today())

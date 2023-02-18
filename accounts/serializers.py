@@ -13,6 +13,12 @@ class DoctorSerializer(serializers.ModelSerializer):
         }
 
 
+class DoctorMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = ['id', 'username']
+
+
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
@@ -21,3 +27,9 @@ class PatientSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+
+class PatientMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = ['id', 'username']

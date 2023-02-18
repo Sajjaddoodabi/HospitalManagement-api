@@ -2,12 +2,14 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 from Hospital.models import Appointment
-from Hospital.serializers import AppointmentSerializer
+from Hospital.serializers import AppointmentSerializer, AppointmentMiniSerializer
 from accounts.models import Doctor, Patient
 from accounts.serializers import DoctorSerializer, PatientSerializer
+from accounts.views import get_user
 
 
 class Hospital(APIView):
@@ -20,26 +22,85 @@ class Reception(APIView):
 
 class ReceptionCreateAppointments(APIView):
     def post(self, request):
-        serializer = AppointmentSerializer(data=request.data)
+        serializer = AppointmentMiniSerializer(data=request.data)
         if serializer.is_valid():
-            pass
+            user = get_user(request)
+            appointment_time = request.data['appointment_time']
+            day = request.data['day']
+            doc = request.data['doctor']
+            doctor1 = Doctor.objects.filter(username=doc).first()
+            doctor = DoctorSerializer(doctor1)
+            patient = PatientSerializer(user)
+
+            appointment = {
+                'patient': patient.data['id'],
+                'doctor': doctor.data['id'],
+                'day': day,
+                'appointment_time': appointment_time,
+                'status': False
+            }
+            appointment_serializer = AppointmentSerializer(data=appointment)
+            if appointment_serializer.is_valid():
+                appointment_serializer.save()
+                return Response(appointment_serializer.data)
+
+            return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReceptionAppointmentDetail(APIView):
     def get(self, request, pk):
-        pass
+        appointment = Appointment.objects.filter(pk=pk).first()
+        if not appointment:
+            response = {'massage': 'Appointment Not Found!'}
+            return Response(response)
+
+        serializer = AppointmentSerializer(appointment)
+
+        return Response(serializer.data)
 
     def put(self, request, pk):
         pass
 
     def delete(self, request, pk):
-        pass
+        appointment = Appointment.objects.filter(pk=pk).first()
+        if not appointment:
+            response = {'massage': 'Appointment Not Found!'}
+            return Response(response)
+        response = {'massage': f'Appointment with id {appointment.id} deleted successfully!'}
+        appointment.delete()
+
+        return Response(response)
 
 
-class ReceptionAppointmentsLst(APIView):
-    def get(self, request):
-        pass
+class ReceptionAppointmentsList(generics.ListAPIView):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer
+
+
+class DoctorEndAppointment(APIView):
+    def post(self, request, pk):
+        appointment = Appointment.objects.filter(pk=pk).first()
+        if not appointment:
+            response = {'massage': 'Appointment Not Found!'}
+            return Response(response)
+        appointment.status = False
+        appointment.save()
+        response = {'massage': 'Appointment deactivated!'}
+        return Response(response)
+
+
+class DoctorActiveAppointment(APIView):
+    def post(self, request, pk):
+        appointment = Appointment.objects.filter(pk=pk).first()
+        if not appointment:
+            response = {'massage': 'Appointment Not Found!'}
+            return Response(response)
+        appointment.status = True
+        appointment.save()
+        response = {'massage': 'Appointment deactivated!'}
+        return Response(response)
+
 
 class Doctors(RetrieveUpdateDestroyAPIView):
     queryset = Doctor.objects.filter(status=True)
