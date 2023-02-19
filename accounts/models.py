@@ -124,3 +124,6 @@ class TimesForTheDay(models.Model):
     Doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='doctor')
     times = models.CharField(choices=Times, max_length=30, default='9')
     day = models.DateField(default=datetime.date.today())
+
+    def __str__(self):
+        return f'{self.Doctor.get_name} - {self.times}'

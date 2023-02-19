@@ -15,3 +15,4 @@ class DoctorAdmin(admin.ModelAdmin):
 
 admin.site.register(BaseUser)
 admin.site.register(Patient)
+admin.site.register(TimesForTheDay)

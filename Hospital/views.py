@@ -7,7 +7,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 from Hospital.models import Appointment
 from Hospital.serializers import AppointmentSerializer, AppointmentMiniSerializer
-from accounts.models import Doctor, Patient
+from accounts.models import Doctor, Patient, TimesForTheDay
 from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer, PatientSerializer, DoctorSerializer
 from accounts.views import get_user
 
@@ -20,42 +20,39 @@ class Reception(APIView):
     pass
 
 
-class ReceptionCreateAppointments(generics.CreateAPIView):
-    serializer_class = AppointmentSerializer
+class ReceptionCreateAppointments(APIView):
+    def post(self, request):
+        serializer = AppointmentSerializer(data=request.data)
+        if serializer.is_valid():
+            user = get_user(request)
+            if user.role == 'PAT':
+                appointment_time = request.data['appointment_time']
+                day = request.data['day']
+                doc = request.data['doctor']
 
-    def perform_create(self, serializer):
-        user = get_user(self.request)
-        doctor = Doctor.objects.filter(username=self.request.data.get('doctor', False))
-        Appointment.objects.create(doctor=doctor, patient=user)
-    # def post(self, request):
-    #     serializer = AppointmentMiniSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         user = get_user(request)
-    #
-    #         appointment_time = request.data['appointment_time']
-    #         day = request.data['day']
-    #         doc = request.data['doctor']
-    #
-    #         doctor1 = Doctor.objects.filter(username=doc).first()
-    #         doctor = DoctorMiniSerializer(doctor1)
-    #         patient = PatientMiniSerializer(user)
-    #
-    #         appointment = {
-    #             'pati': patient.data,
-    #             'doct': doctor.data,
-    #             'day': day,
-    #             'appointment_time': appointment_time,
-    #             'status': False
-    #         }
-    #
-    #         # return Response(appointment)
-    #         appointment_serializer = AppointmentSerializer(data=appointment)
-    #         if appointment_serializer.is_valid():
-    #             appointment_serializer.save()
-    #             return Response(appointment_serializer.data)
-    #
-    #         return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                doctor = Doctor.objects.filter(parent_user__username=doc).first()
+                patient = Patient.objects.filter(parent_user=user).first()
+                isExist = TimesForTheDay.objects.filter(
+                    day=day,
+                    times=appointment_time).exists()
+
+                if isExist:
+                    response = {'massage': 'Doctor is busy in that time!'}
+                    return Response(response)
+
+                appointment = Appointment.objects.create(
+                    doctor=doctor,
+                    patient=patient,
+                    appointment_time=appointment_time,
+                    day=day
+                )
+                TimesForTheDay.objects.create(Doctor=doctor, times=appointment_time, day=day)
+                appointment_ser = AppointmentSerializer(appointment)
+                return Response(appointment_ser.data, status=status.HTTP_201_CREATED)
+            else:
+                response = {'massage': 'user should be patient to add appointment'}
+                return Response(response)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReceptionAppointmentDetail(APIView):

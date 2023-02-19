@@ -122,9 +122,11 @@ class UserView(APIView):
             raise AuthenticationFailed('User not found!')
 
         if user.role == 'PAT':
-            serializer = PatientSerializer(user)
+            patient = Patient.objects.filter(parent_user_id=user.id).first()
+            serializer = PatientSerializer(patient)
         elif user.role == 'DOC':
-            serializer = DoctorSerializer(user)
+            doctor = Doctor.objects.filter(parent_user_id=user.id).first()
+            serializer = DoctorSerializer(doctor)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
