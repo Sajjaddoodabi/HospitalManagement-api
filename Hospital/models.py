@@ -16,10 +16,3 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f'{self.doctor.get_name} - {self.patient.get_name} - {self.appointment_time}'
-
-
-# class Reception(models.Model):
-#     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='receptionist')
-#
-#     def __str__(self):
-#         return self.appointment

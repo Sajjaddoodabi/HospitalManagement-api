@@ -33,6 +33,7 @@ class ReceptionCreateAppointments(APIView):
                 doctor = Doctor.objects.filter(parent_user__username=doc).first()
                 patient = Patient.objects.filter(parent_user=user).first()
                 isExist = TimesForTheDay.objects.filter(
+                    Doctor=doctor,
                     day=day,
                     times=appointment_time).exists()
 
