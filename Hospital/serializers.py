@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from Hospital.models import Appointment
-from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer, DoctorSerializer, PatientSerializer
+from Hospital.models import Appointment, AppointmentTime
+from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -17,9 +17,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class AppointmentMiniSerializer(serializers.ModelSerializer):
-    doctor = DoctorMiniSerializer(many=True, read_only=True)
-
     class Meta:
         model = Appointment
-        read_only_fields = ('doctor',),
-        fields = ('id', 'doctor', 'day', 'appointment_time')
+        fields = ('id', 'status')
+
+
+class AppointmentTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        module = AppointmentTime
+        read_only_fields = ('is_active',)
+        fields = ('id', 'time', 'is_active')

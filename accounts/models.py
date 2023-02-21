@@ -5,6 +5,8 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from Hospital.models import AppointmentTime
+
 departments = [('General', 'General'),
                ('Cardiologist', 'Cardiologist'),
                ('Dermatologists', 'Dermatologists'),
@@ -80,9 +82,17 @@ class BaseUser(AbstractUser):
         db_table = 'BaseUser'
 
 
+class DoctorCategory(models.Model):
+    title = models.CharField(max_length=200)
+    is_active = models.BooleanField()
+
+    def __str__(self):
+        return self.title
+
+
 class Doctor(models.Model):
     parent_user = models.OneToOneField(BaseUser, related_name='doctor', on_delete=models.CASCADE)
-    department = models.CharField(choices=departments, max_length=40, default='General')
+    category = models.ForeignKey(DoctorCategory, on_delete=models.CASCADE, related_name='doctor')
     address = models.CharField(max_length=300, null=True, blank=True)
 
     class Meta:
@@ -97,7 +107,7 @@ class Doctor(models.Model):
             return f'{self.parent_user.first_name} {self.parent_user.last_name}'
 
     def __str__(self):
-        return f'{self.get_name} - {self.department}'
+        return f'{self.get_name} - {self.category}'
 
 
 class Patient(models.Model):
@@ -121,8 +131,8 @@ class Patient(models.Model):
 
 
 class TimesForTheDay(models.Model):
-    Doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='doctor')
-    times = models.CharField(choices=Times, max_length=30, default='9')
+    Doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='time_for_day')
+    times = models.ForeignKey(AppointmentTime, on_delete=models.CASCADE, related_name='time_for_day')
     day = models.DateField(default=datetime.date.today())
 
     def __str__(self):

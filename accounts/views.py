@@ -1,13 +1,15 @@
 import datetime
 
 import jwt
+from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Doctor, Patient, BaseUser
-from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer
+from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer, ChangePasswordSerializer
 
 
 class DoctorRegisterView(APIView):
@@ -142,3 +144,32 @@ def get_user(request):
     user = BaseUser.objects.filter(id=payload['id']).first()
 
     return user
+
+
+class DoctorDetail(RetrieveUpdateDestroyAPIView):
+    queryset = Doctor.objects.filter(parent_user__status=True)
+    serializer_class = DoctorSerializer
+
+
+class PatientDetail(RetrieveUpdateDestroyAPIView):
+    queryset = Patient.objects.filter(parent_user__status=True)
+    serializer_class = PatientSerializer
+
+
+class ChangePassword(APIView):
+    def put(self, request):
+        user = get_user(request)
+        current_password = request.data['current_password']
+        new_password = request.data['new_password']
+        if user.check_password(current_password):
+            if current_password != new_password:
+                user.password = make_password(new_password)
+                user.save()
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+
+            response = {'massage': 'U should use a new password'}
+            return Response(response)
+
+        response = {'massage': 'wrong password'}
+        return Response(response)

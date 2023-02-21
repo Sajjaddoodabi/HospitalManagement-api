@@ -1,10 +1,7 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics
-from rest_framework.generics import RetrieveUpdateDestroyAPIView
-
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
 from Hospital.models import Appointment
 from Hospital.serializers import AppointmentSerializer, AppointmentMiniSerializer
 from accounts.models import Doctor, Patient, TimesForTheDay
@@ -81,40 +78,22 @@ class ReceptionAppointmentDetail(APIView):
         return Response(response)
 
 
-class ReceptionAppointmentsList(generics.ListAPIView):
+class ReceptionAppointmentsList(ListAPIView):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
 
 
-class DoctorEndAppointment(APIView):
-    def post(self, request, pk):
-        appointment = Appointment.objects.filter(pk=pk).first()
-        if not appointment:
-            response = {'massage': 'Appointment Not Found!'}
-            return Response(response)
-        appointment.status = False
-        appointment.save()
-        response = {'massage': 'Appointment deactivated!'}
-        return Response(response)
+class UpdateAppointmentStatus(APIView):
+    def put(self, request, pk):
+        serializer = AppointmentMiniSerializer(data=request.data)
+        if serializer.is_valid():
+            appointment_status = request.data['status']
+            appointment = Appointment.objects.filter(pk=pk).first()
+            appointment.status = appointment_status
+            if appointment_status == 'DON' or appointment_status == 'DEN':
+                appointment.is_active = False
+            appointment.save()
 
-
-class DoctorActiveAppointment(APIView):
-    def post(self, request, pk):
-        appointment = Appointment.objects.filter(pk=pk).first()
-        if not appointment:
-            response = {'massage': 'Appointment Not Found!'}
-            return Response(response)
-        appointment.status = True
-        appointment.save()
-        response = {'massage': 'Appointment deactivated!'}
-        return Response(response)
-
-
-class Doctors(RetrieveUpdateDestroyAPIView):
-    queryset = Doctor.objects.filter(parent_user__status=True)
-    serializer_class = DoctorSerializer
-
-
-class Patients(RetrieveUpdateDestroyAPIView):
-    queryset = Patient.objects.filter(parent_user__status=True)
-    serializer_class = PatientSerializer
+            appointment_ser = AppointmentSerializer(appointment)
+            return Response(appointment_ser.data, status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

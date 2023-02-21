@@ -1,6 +1,8 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
+from rest_framework.response import Response
 
-from accounts.models import Doctor, Patient, BaseUser
+from accounts.models import Doctor, Patient, BaseUser, DoctorCategory, AppointmentTime
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,12 +21,20 @@ class UserMiniSerializer(serializers.ModelSerializer):
         fields = ('id', 'username')
 
 
+class DoctorCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        module = DoctorCategory
+        read_only_fields = ('is_active',)
+        fields = ('id', 'title', 'is_active')
+
+
 class DoctorSerializer(serializers.ModelSerializer):
     parent_user = UserSerializer(read_only=True)
+    category = DoctorCategory()
 
     class Meta:
         model = Doctor
-        fields = ('id', 'parent_user')
+        fields = ('id', 'parent_user', 'category')
 
 
 class DoctorMiniSerializer(serializers.ModelSerializer):
@@ -49,3 +59,21 @@ class PatientMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = ('id', 'parent_user')
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    current_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+
+    new_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+
+    class Meta:
+        model = BaseUser
+        fields = ('current_password', 'new_password')

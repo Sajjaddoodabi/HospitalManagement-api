@@ -8,7 +8,7 @@ class MedicineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicine
         read_only_fields = ('is_active',)
-        fields = ('id', 'title', 'is_active')
+        fields = ('id', 'prescription', 'title', 'is_active')
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):
@@ -20,3 +20,9 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         model = Prescription
         read_only_fields = ('is_active', 'status')
         fields = ('id', 'doctor', 'patient', 'medicine', 'is_active', 'status')
+
+
+class PrescriptionMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ('id', 'status')
