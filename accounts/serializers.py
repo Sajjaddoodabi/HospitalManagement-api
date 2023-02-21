@@ -23,14 +23,14 @@ class UserMiniSerializer(serializers.ModelSerializer):
 
 class DoctorCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        module = DoctorCategory
+        model = DoctorCategory
         read_only_fields = ('is_active',)
         fields = ('id', 'title', 'is_active')
 
 
 class DoctorSerializer(serializers.ModelSerializer):
     parent_user = UserSerializer(read_only=True)
-    category = DoctorCategory()
+    category = DoctorCategorySerializer(read_only=True)
 
     class Meta:
         model = Doctor

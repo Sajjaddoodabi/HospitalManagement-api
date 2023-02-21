@@ -9,10 +9,11 @@ class TimesAdmin(admin.TabularInline):
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
     inlines = [
-        TimesAdmin
+        TimesAdmin,
     ]
 
 
 admin.site.register(BaseUser)
 admin.site.register(Patient)
 admin.site.register(TimesForTheDay)
+admin.site.register(DoctorCategory)

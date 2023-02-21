@@ -7,23 +7,23 @@ from django.db import models
 
 from Hospital.models import AppointmentTime
 
-departments = [('General', 'General'),
-               ('Cardiologist', 'Cardiologist'),
-               ('Dermatologists', 'Dermatologists'),
-               ('Emergency Medicine Specialists', 'Emergency Medicine Specialists'),
-               ('Allergists/Immunologists', 'Allergists/Immunologists'),
-               ('Anesthesiologists', 'Anesthesiologists'),
-               ('Colon and Rectal Surgeons', 'Colon and Rectal Surgeons')
-               ]
+# departments = [('General', 'General'),
+#                ('Cardiologist', 'Cardiologist'),
+#                ('Dermatologists', 'Dermatologists'),
+#                ('Emergency Medicine Specialists', 'Emergency Medicine Specialists'),
+#                ('Allergists/Immunologists', 'Allergists/Immunologists'),
+#                ('Anesthesiologists', 'Anesthesiologists'),
+#                ('Colon and Rectal Surgeons', 'Colon and Rectal Surgeons')
+#                ]
 Patient_status = []
-Times = [('9', '9'),
-         ('9:30', '9:30'),
-         ('10', '10'),
-         ('10:30', '10:30'),
-         ('11', '11'),
-         ('11:30', '11:30'),
-         ('12', '12'),
-         ('12:30', '12:30'), ]
+# Times = [('9', '9'),
+#          ('9:30', '9:30'),
+#          ('10', '10'),
+#          ('10:30', '10:30'),
+#          ('11', '11'),
+#          ('11:30', '11:30'),
+#          ('12', '12'),
+#          ('12:30', '12:30'), ]
 
 
 class UserManagement(BaseUserManager):
@@ -45,6 +45,7 @@ class UserManagement(BaseUserManager):
         user_obj = self.create_user(email=email, username=username, password=password)
         user_obj.is_staff = True
         user_obj.is_superuser = True
+        user_obj.role = 'ADM'
         user_obj.save(using=self._db)
         return user_obj
 

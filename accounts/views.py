@@ -8,8 +8,9 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Doctor, Patient, BaseUser
-from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer, ChangePasswordSerializer
+from accounts.models import Doctor, Patient, BaseUser, DoctorCategory
+from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer, ChangePasswordSerializer, \
+    DoctorMiniSerializer
 
 
 class DoctorRegisterView(APIView):
@@ -18,6 +19,8 @@ class DoctorRegisterView(APIView):
             username = request.data['username']
             email = request.data['email']
             password = request.data['password']
+            category = request.data['category']
+            category = DoctorCategory.objects.get(title=category)
         except:
             response = {'massage': 'field error'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -31,11 +34,14 @@ class DoctorRegisterView(APIView):
             if not password:
                 response = {'massage': 'password field required!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            if not category:
+                response = {'massage': 'category field required!'}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
             try:
                 user = BaseUser.objects.create_user(username=username, email=email, password=password)
                 user.role = 'DOC'
                 user.save()
-                doctor = Doctor.objects.create(parent_user_id=user.id)
+                doctor = Doctor.objects.create(parent_user_id=user.id, category=category)
             except:
                 response = {'massage': 'email or username is already taken!'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
