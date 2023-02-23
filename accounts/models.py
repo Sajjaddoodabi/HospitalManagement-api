@@ -15,6 +15,9 @@ from django.db import models
 #                ]
 Patient_status = []
 
+DOCTOR_STATUS = (('ACP', 'accepted'),
+                 ('DEC', 'declined'),)
+
 
 # Times = [('9', '9'),
 #          ('9:30', '9:30'),
@@ -95,6 +98,7 @@ class Doctor(models.Model):
     parent_user = models.OneToOneField(BaseUser, related_name='doctor', on_delete=models.CASCADE)
     category = models.ForeignKey(DoctorCategory, on_delete=models.CASCADE, related_name='doctor')
     address = models.CharField(max_length=300, null=True, blank=True)
+    doctor_status = models.CharField(choices=DOCTOR_STATUS, max_length=60, default='DEC')
 
     class Meta:
         verbose_name = 'Doctor'

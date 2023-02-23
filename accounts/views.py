@@ -235,3 +235,16 @@ class DoctorCategories(ListAPIView):
 class AppointmentTimeDetail(RetrieveUpdateDestroyAPIView):
     queryset = AppointmentTime.objects.all()
     serializer_class = AppointmentTimeSerializer
+
+
+class DoctorAccept(APIView):
+    def put(self, request, pk):
+        doctor = Doctor.objects.filter(pk=pk).first()
+        if doctor is not None:
+            doctor.doctor_status = 'ACP'
+            serializer = DoctorSerializer(doctor)
+
+            return Response(serializer.data)
+
+        response = {'massage': 'Doctor does not exist!'}
+        return Response(response)
