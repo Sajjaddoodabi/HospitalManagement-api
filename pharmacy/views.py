@@ -81,7 +81,21 @@ class MedicineDetail(APIView):
         return Response(response)
 
     def put(self, request, pk):
-        pass
+        medicine = Medicine.objects.filter(pk=pk).first()
+        if medicine is not None:
+            title = request.data['title']
+            is_Exist = Medicine.objects.filter(title=title).exists()
+
+            if is_Exist:
+                response = {'massage': 'medicine with this name already exist!'}
+                return Response(response)
+
+            medicine.title = title
+            serializer = MedicineSerializer(medicine)
+            return Response(serializer.data)
+
+        response = {'massage': 'medicine does not exist!'}
+        return Response(response)
 
     def delete(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
