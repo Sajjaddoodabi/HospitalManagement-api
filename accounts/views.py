@@ -4,13 +4,15 @@ import jwt
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, UpdateAPIView, ListAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from Hospital.models import AppointmentTime
+from Hospital.serializers import AppointmentTimeSerializer
 from accounts.models import Doctor, Patient, BaseUser, DoctorCategory
 from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer, ChangePasswordSerializer, \
-    DoctorMiniSerializer
+    DoctorMiniSerializer, DoctorCategorySerializer
 
 
 class DoctorRegisterView(APIView):
@@ -42,8 +44,8 @@ class DoctorRegisterView(APIView):
                 user.role = 'DOC'
                 user.save()
                 doctor = Doctor.objects.create(parent_user_id=user.id, category=category)
-            except:
-                response = {'massage': 'email or username is already taken!'}
+            except Exception as e:
+                response = {'massage': str(e)}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = DoctorSerializer(doctor)
@@ -77,8 +79,8 @@ class PatientRegisterView(APIView):
             try:
                 user = BaseUser.objects.create_user(username=username, email=email, password=password)
                 patient = Patient.objects.create(parent_user_id=user.id)
-            except:
-                response = {'massage': 'email or username is already taken!'}
+            except Exception as e:
+                response = {'massage': str(e)}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             else:
                 serializer = PatientSerializer(patient)
@@ -123,6 +125,29 @@ class LogoutView(APIView):
         return response
 
 
+class ChangePassword(APIView):
+    def put(self, request):
+        user = get_user(request)
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            current_password = serializer.current_password
+            new_password = serializer.new_password
+            if user.check_password(current_password):
+                if current_password != new_password:
+                    user.password = make_password(new_password)
+                    user.save()
+                    serializer = UserSerializer(user)
+                    return Response(serializer.data)
+
+                response = {'massage': 'U should use a new password'}
+                return Response(response)
+
+            response = {'massage': 'wrong password'}
+            return Response(response)
+
+        return Response(serializer.errors)
+
+
 class UserView(APIView):
     def get(self, request):
         user = get_user(request)
@@ -162,20 +187,51 @@ class PatientDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = PatientSerializer
 
 
-class ChangePassword(APIView):
-    def put(self, request):
-        user = get_user(request)
-        current_password = request.data['current_password']
-        new_password = request.data['new_password']
-        if user.check_password(current_password):
-            if current_password != new_password:
-                user.password = make_password(new_password)
-                user.save()
-                serializer = UserSerializer(user)
-                return Response(serializer.data)
+class AddDoctorCategory(CreateAPIView):
+    queryset = DoctorCategory.objects.all()
+    serializer_class = DoctorCategorySerializer
 
-            response = {'massage': 'U should use a new password'}
+
+class DoctorCategoryDetail(APIView):
+    def get(self, request, pk):
+        category = DoctorCategory.objects.filter(pk=pk).first()
+        if category is not None:
+            serializer = DoctorCategorySerializer(category)
+            return Response(serializer.data)
+        else:
+            response = {'massage': 'category does not exist!'}
             return Response(response)
 
-        response = {'massage': 'wrong password'}
+    def put(self, request, pk):
+        category = DoctorCategory.objects.get(pk=pk)
+        serializer = DoctorCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            title = serializer.data['title']
+            is_Exist = DoctorCategory.objects.filter(title=title).exists()
+            if is_Exist:
+                response = {'massage': 'category with this name already exist!'}
+                return Response(response)
+            category.title = title
+            category_ser = DoctorCategorySerializer(category)
+            return Response(category_ser.data)
+        return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        category = DoctorCategory.objects.filter(pk=pk).first()
+        if category is not None:
+            category.delete()
+            response = {'massage': f'category with id {category.id} deleted successfully!'}
+            return Response(response)
+
+        response = {'massage': 'category does not exist!'}
         return Response(response)
+
+
+class DoctorCategories(ListAPIView):
+    queryset = DoctorCategory.objects.filter(is_active=True)
+    serializer_class = DoctorCategorySerializer
+
+
+class AppointmentTimeDetail(RetrieveUpdateDestroyAPIView):
+    queryset = AppointmentTime.objects.all()
+    serializer_class = AppointmentTimeSerializer

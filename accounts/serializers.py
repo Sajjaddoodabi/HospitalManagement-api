@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.response import Response
 
-from accounts.models import Doctor, Patient, BaseUser, DoctorCategory, AppointmentTime
+from accounts.models import Doctor, Patient, BaseUser, DoctorCategory
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -77,3 +77,6 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseUser
         fields = ('current_password', 'new_password')
+
+
+

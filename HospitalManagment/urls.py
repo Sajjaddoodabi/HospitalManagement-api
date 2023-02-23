@@ -21,9 +21,9 @@ from HospitalManagment import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('account/', include('accounts.urls')),
-    path('reception/', include('Hospital.urls')),
-    path('pharmacy/', include('pharmacy.urls')),
+    path('api/account/', include('accounts.urls')),
+    path('api/reception/', include('Hospital.urls')),
+    path('api/pharmacy/', include('pharmacy.urls')),
 ]
 
 if settings.DEBUG:

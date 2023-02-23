@@ -1,12 +1,20 @@
 from rest_framework import serializers
 
-from Hospital.models import Appointment, AppointmentTime
+from Hospital.models import Appointment, AppointmentTime, TimesForTheDay
 from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer
+
+
+class AppointmentTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppointmentTime
+        read_only_fields = ('is_active',)
+        fields = ('id', 'time', 'is_active')
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
     doctor = DoctorMiniSerializer(read_only=True)
     patient = PatientMiniSerializer(read_only=True)
+    appointment_time = AppointmentTimeSerializer(read_only=True)
 
     class Meta:
         model = Appointment
@@ -22,8 +30,10 @@ class AppointmentMiniSerializer(serializers.ModelSerializer):
         fields = ('id', 'status')
 
 
-class AppointmentTimeSerializer(serializers.ModelSerializer):
+class TimesForTheDaySerializer(serializers.ModelSerializer):
+    doctor = DoctorMiniSerializer(read_only=True)
+    times = AppointmentTimeSerializer(read_only=True)
+
     class Meta:
-        module = AppointmentTime
-        read_only_fields = ('is_active',)
-        fields = ('id', 'time', 'is_active')
+        model = TimesForTheDay
+        fields = ('id', 'times', 'day', 'doctor')

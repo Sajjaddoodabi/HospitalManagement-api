@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from Hospital.models import TimesForTheDay
 from .models import *
 
 
@@ -15,5 +17,4 @@ class DoctorAdmin(admin.ModelAdmin):
 
 admin.site.register(BaseUser)
 admin.site.register(Patient)
-admin.site.register(TimesForTheDay)
 admin.site.register(DoctorCategory)

@@ -2,10 +2,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
-from Hospital.models import Appointment
-from Hospital.serializers import AppointmentSerializer, AppointmentMiniSerializer
-from accounts.models import Doctor, Patient, TimesForTheDay
-from accounts.serializers import DoctorMiniSerializer, PatientMiniSerializer, PatientSerializer, DoctorSerializer
+from Hospital.models import Appointment, AppointmentTime, TimesForTheDay
+from Hospital.serializers import AppointmentSerializer, AppointmentMiniSerializer, AppointmentTimeSerializer
+from accounts.models import Doctor, Patient
 from accounts.views import get_user
 
 
@@ -23,12 +22,14 @@ class ReceptionCreateAppointments(APIView):
         if serializer.is_valid():
             user = get_user(request)
             if user.role == 'PAT':
-                appointment_time = request.data['appointment_time']
+                time = request.data['appointment_time']
                 day = request.data['day']
                 doc = request.data['doctor']
 
+                appointment_time = AppointmentTime.objects.filter(time=time).first()
                 doctor = Doctor.objects.filter(parent_user__username=doc).first()
                 patient = Patient.objects.filter(parent_user=user).first()
+
                 isExist = TimesForTheDay.objects.filter(
                     Doctor=doctor,
                     day=day,
