@@ -22,7 +22,14 @@ class Prescription(models.Model):
 
 class Medicine(models.Model):
     title = models.CharField(max_length=200)
-    prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='medicine')
+    prescription = models.ForeignKey(
+        Prescription,
+        on_delete=models.CASCADE,
+        related_name='medicine',
+        null=True,
+        blank=True
+    )
+    count = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

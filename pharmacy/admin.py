@@ -13,3 +13,6 @@ class PrescriptionAdmin(admin.ModelAdmin):
     inlines = [
         MedicineInline
     ]
+
+
+admin.site.register(Medicine)

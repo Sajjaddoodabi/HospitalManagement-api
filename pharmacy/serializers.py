@@ -18,6 +18,14 @@ class MedicineMiniSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'is_active')
 
 
+class MedicineCountSerializer(serializers.ModelSerializer):
+    medicine_count = serializers.CharField(required=True)
+
+    class Meta:
+        model = Medicine
+        fields = ('medicine_count',)
+
+
 class PrescriptionSerializer(serializers.ModelSerializer):
     medicine = MedicineSerializer(many=True)
     patient = PatientMiniSerializer(read_only=True)

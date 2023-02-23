@@ -8,7 +8,8 @@ from Hospital.serializers import AppointmentSerializer
 from accounts.models import Doctor
 from accounts.views import get_user
 from pharmacy.models import Prescription, Medicine
-from pharmacy.serializers import PrescriptionSerializer, MedicineSerializer, PrescriptionMiniSerializer
+from pharmacy.serializers import PrescriptionSerializer, MedicineSerializer, PrescriptionMiniSerializer, \
+    MedicineMiniSerializer
 
 
 class Pharmacy(APIView):
@@ -63,19 +64,81 @@ class PrescriptionList(generics.ListAPIView):
     serializer_class = PrescriptionSerializer
 
 
-class AddMedicine(APIView):
-
+class AddMedicineToPrescription(APIView):
     def post(self, request):
         serializer = MedicineSerializer(data=request.data)
         if serializer.is_valid():
-            pass
+            title = serializer.data['title']
+
+            user = get_user(request)
+            doctor = Doctor.objects.filter(parent_user=user).first()
+
+            appointment = Appointment.objects.filter(doctor=doctor, status='DO').first()
+            prescription = Prescription.objects.filter(doctor__appointment=appointment).first()
+
+            medicine_ch = Medicine.objects.filter(title=title).first()
+            if medicine_ch is not None:
+                medicine_ch.prescription = prescription
+
+            medicine = Medicine.objects.create(title=title, prescription_id=prescription.id, count=1)
+            medicine_ser = MedicineSerializer(medicine)
+
+            return Response(medicine_ser.data)
+
+        return Response(serializer.errors)
+
+
+class RemoveMedicineFromPrescription(APIView):
+    def delete(self, request, pk):
+        medicine = Medicine.objects.filter(pk=pk).first()
+
+        if medicine is not None:
+            medicine.delete()
+
+            response = {'massage': f'medicine with id {medicine.id} deleted!'}
+            return Response(response)
+
+        response = {'massage': 'Medicine does not exist!'}
+        return Response(response)
+
+
+class ChangeMedicineCount(APIView):
+    def put(self, request, pk):
+        medicine = Medicine.objects.filter(pk=pk).first()
+        if medicine is not None:
+            if medicine.prescription is not None:
+
+                count_status = request.data['medicine_count']
+                if count_status == 'reduce':
+                    medicine.count -= 1
+
+                    if medicine.count == 0:
+                        medicine.delete()
+                        response = {'massage': f'medicine with id {medicine.id} deleted!'}
+                        return Response(response)
+
+                elif count_status == 'increase':
+                    medicine.count += 1
+
+                else:
+                    response = {'massage': 'status not allowed'}
+                    return Response(response)
+
+                medicine_ser = MedicineSerializer(medicine)
+                return Response(medicine_ser.data)
+
+            response = {'massage': 'Medicine does not belong to any prescription!'}
+            return Response(response)
+
+        response = {'massage': 'Medicine does not exist!'}
+        return Response(response)
 
 
 class MedicineDetail(APIView):
     def get(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
         if medicine is not None:
-            serializer = MedicineSerializer(medicine)
+            serializer = MedicineMiniSerializer(medicine)
             return Response(serializer.data)
         response = {'massage': 'medicine does not exist!'}
         return Response(response)
@@ -109,7 +172,7 @@ class MedicineDetail(APIView):
 
 class MedicineList(generics.ListAPIView):
     queryset = Medicine.objects.all()
-    serializer_class = MedicineSerializer
+    serializer_class = MedicineMiniSerializer
 
 
 class UpdatePrescriptionStatus(APIView):
