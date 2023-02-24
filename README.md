@@ -1,4 +1,4 @@
-# HospitalManagment-api
+# HospitalManagement-api
 
 API of an hospital manager using DRF(django rest framework)
 
