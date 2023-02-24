@@ -15,18 +15,11 @@ from django.db import models
 #                ]
 Patient_status = []
 
+Insurance_status = [('VLD', 'valid'),
+                    ('NVD', 'not valid')]
+
 DOCTOR_STATUS = (('ACP', 'accepted'),
                  ('DEC', 'declined'),)
-
-
-# Times = [('9', '9'),
-#          ('9:30', '9:30'),
-#          ('10', '10'),
-#          ('10:30', '10:30'),
-#          ('11', '11'),
-#          ('11:30', '11:30'),
-#          ('12', '12'),
-#          ('12:30', '12:30'), ]
 
 
 class UserManagement(BaseUserManager):
@@ -85,10 +78,27 @@ class BaseUser(AbstractUser):
         verbose_name_plural = 'BaseUsers'
         db_table = 'BaseUser'
 
+    @property
+    def get_name(self):
+        if self.username is not None:
+            return self.username
+        else:
+            return f'{self.first_name} {self.last_name}'
+
 
 class DoctorCategory(models.Model):
     title = models.CharField(max_length=200)
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Insurance(models.Model):
+    title = models.CharField(max_length=300)
+    description = models.TextField(max_length=500)
+    reduce_percent = models.IntegerField()
+    status = models.CharField(choices=Insurance_status, max_length=300, default='NVD')
 
     def __str__(self):
         return self.title
@@ -104,34 +114,25 @@ class Doctor(models.Model):
         verbose_name = 'Doctor'
         verbose_name_plural = 'Doctors'
 
-    @property
-    def get_name(self):
-        if self.parent_user.username is not None:
-            return self.parent_user.username
-        else:
-            return f'{self.parent_user.first_name} {self.parent_user.last_name}'
-
     def __str__(self):
-        return f'{self.get_name} - {self.category}'
+        return f'{self.parent_user.get_name} - {self.category}'
 
 
 class Patient(models.Model):
     parent_user = models.OneToOneField(BaseUser, related_name='patient', on_delete=models.CASCADE)
+    insurance = models.ForeignKey(
+        Insurance,
+        on_delete=models.CASCADE,
+        related_name='patient',
+        blank=True,
+        null=True
+    )
     symptoms = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=300, blank=True, null=True)
-
-    # insurance = models.CharField(max_length=400, blank=True, null=True)
 
     class Meta:
         verbose_name = 'patient'
         verbose_name_plural = 'patients'
 
-    @property
-    def get_name(self):
-        if self.parent_user.username is not None:
-            return self.parent_user.username
-        else:
-            return f'{self.parent_user.first_name} {self.parent_user.last_name}'
-
     def __str__(self):
-        return f'{self.get_name}'
+        return f'{self.parent_user.get_name}'
