@@ -250,6 +250,8 @@ class DoctorCategoryDetail(APIView):
 
 
 class DoctorCategories(ListAPIView):
+    permission_classes = (IsAdminOrReadOnly,)
+
     queryset = DoctorCategory.objects.filter(is_active=True)
     serializer_class = DoctorCategorySerializer
 
@@ -260,6 +262,8 @@ class AppointmentTimeDetail(RetrieveUpdateDestroyAPIView):
 
 
 class DoctorApproval(APIView):
+    permission_classes = (IsAdminUser,)
+
     def put(self, request, pk):
         doctor = Doctor.objects.filter(pk=pk).first()
         if doctor is not None:

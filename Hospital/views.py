@@ -87,13 +87,15 @@ class ReceptionAppointmentDetail(APIView):
 
 
 class ReceptionAppointmentsList(ListAPIView):
-    permission_classes = (IsPatient,)
+    permission_classes = (IsDoctor,)
 
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
 
 
 class UpdateAppointmentStatus(APIView):
+    permission_classes = (IsAdminUser,)
+
     def put(self, request, pk):
         serializer = AppointmentMiniSerializer(data=request.data)
         if serializer.is_valid():

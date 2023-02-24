@@ -8,3 +8,4 @@ PyJWT==2.6.0
 pytz==2022.7.1
 sqlparse==0.4.3
 tzdata==2022.7
+lib~=4.0.0

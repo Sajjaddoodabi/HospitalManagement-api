@@ -39,7 +39,7 @@ class AddPrescription(APIView):
 
 
 class PrescriptionDetail(APIView):
-    permission_classes = (IsDoctor,)
+    permission_classes = (IsPatient,)
 
     def get(self, request, pk):
         prescription = Prescription.objects.filter(pk=pk).first()
@@ -167,6 +167,8 @@ class ChangeMedicineCount(APIView):
 
 
 class MedicineDetail(APIView):
+    permission_classes = (IsDoctor,)
+
     def get(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
         if medicine is not None:
@@ -203,11 +205,15 @@ class MedicineDetail(APIView):
 
 
 class MedicineList(generics.ListAPIView):
+    permission_classes = (IsDoctor, IsAdminUser)
+
     queryset = Medicine.objects.all()
     serializer_class = MedicineMiniSerializer
 
 
 class UpdatePrescriptionStatus(APIView):
+    permission_classes = (IsDoctor, IsAdminUser)
+
     def put(self, request, pk):
         serializer = PrescriptionMiniSerializer(data=request.data)
         if serializer.is_valid():
