@@ -4,7 +4,8 @@ import jwt
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, UpdateAPIView, ListAPIView, CreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,10 +13,13 @@ from Hospital.models import AppointmentTime
 from Hospital.serializers import AppointmentTimeSerializer
 from accounts.models import Doctor, Patient, BaseUser, DoctorCategory
 from accounts.serializers import DoctorSerializer, PatientSerializer, UserSerializer, ChangePasswordSerializer, \
-    DoctorMiniSerializer, DoctorCategorySerializer
+    DoctorCategorySerializer
+from .permissions import *
 
 
 class DoctorRegisterView(APIView):
+    permission_classes = (IsNotAuthenticated,)
+
     def post(self, request):
         try:
             username = request.data['username']
@@ -58,6 +62,8 @@ class DoctorRegisterView(APIView):
 
 
 class PatientRegisterView(APIView):
+    permission_classes = (IsNotAuthenticated,)
+
     def post(self, request):
         try:
             username = request.data['username']
@@ -88,6 +94,8 @@ class PatientRegisterView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = (IsNotAuthenticated,)
+
     def post(self, request):
         email = request.data['email']
         password = request.data['password']
@@ -115,6 +123,8 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')
@@ -126,6 +136,8 @@ class LogoutView(APIView):
 
 
 class ChangePassword(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def put(self, request):
         user = get_user(request)
         serializer = ChangePasswordSerializer(data=request.data)
@@ -149,6 +161,8 @@ class ChangePassword(APIView):
 
 
 class UserView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         user = get_user(request)
         if not user:
@@ -178,21 +192,29 @@ def get_user(request):
 
 
 class DoctorDetail(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsDoctor,)
+
     queryset = Doctor.objects.filter(parent_user__status=True)
     serializer_class = DoctorSerializer
 
 
 class PatientDetail(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsPatient,)
+
     queryset = Patient.objects.filter(parent_user__status=True)
     serializer_class = PatientSerializer
 
 
 class AddDoctorCategory(CreateAPIView):
+    permission_classes = (IsAdminUser,)
+
     queryset = DoctorCategory.objects.all()
     serializer_class = DoctorCategorySerializer
 
 
 class DoctorCategoryDetail(APIView):
+    permission_classes = (IsAdminUser,)
+
     def get(self, request, pk):
         category = DoctorCategory.objects.filter(pk=pk).first()
         if category is not None:
@@ -237,7 +259,7 @@ class AppointmentTimeDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = AppointmentTimeSerializer
 
 
-class DoctorAccept(APIView):
+class DoctorApproval(APIView):
     def put(self, request, pk):
         doctor = Doctor.objects.filter(pk=pk).first()
         if doctor is not None:

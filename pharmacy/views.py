@@ -1,3 +1,6 @@
+from accounts.permissions import *
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, status
@@ -15,6 +18,8 @@ class Pharmacy(APIView):
 
 
 class AddPrescription(APIView):
+    permission_classes = (IsDoctor,)
+
     def post(self, request):
         serializer = PrescriptionSerializer(data=request.data)
         if serializer.is_valid():
@@ -34,6 +39,8 @@ class AddPrescription(APIView):
 
 
 class PrescriptionDetail(APIView):
+    permission_classes = (IsDoctor,)
+
     def get(self, request, pk):
         prescription = Prescription.objects.filter(pk=pk).first()
         if prescription is not None:
@@ -58,11 +65,15 @@ class PrescriptionDetail(APIView):
 
 
 class PrescriptionList(generics.ListAPIView):
+    permission_classes = (IsAdminUser,)
+
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
 
 
 class AddMedicine(APIView):
+    permission_classes = (IsAdminUser,)
+
     def post(self, request):
         serializer = MedicineMiniSerializer(data=request.data)
         if serializer.is_valid():
@@ -75,6 +86,8 @@ class AddMedicine(APIView):
 
 
 class AddMedicineToPrescription(APIView):
+    permission_classes = (IsDoctor,)
+
     def post(self, request):
         serializer = MedicineSerializer(data=request.data)
         if serializer.is_valid():
@@ -104,6 +117,8 @@ class AddMedicineToPrescription(APIView):
 
 
 class RemoveMedicineFromPrescription(APIView):
+    permission_classes = (IsDoctor,)
+
     def delete(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
 
@@ -118,6 +133,8 @@ class RemoveMedicineFromPrescription(APIView):
 
 
 class ChangeMedicineCount(APIView):
+    permission_classes = (IsDoctor,)
+
     def put(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
         if medicine is not None:

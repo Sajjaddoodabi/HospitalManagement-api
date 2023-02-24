@@ -1,3 +1,6 @@
+from accounts.permissions import *
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +20,8 @@ class Reception(APIView):
 
 
 class ReceptionCreateAppointments(APIView):
+    permission_classes = (IsPatient,)
+
     def post(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -55,6 +60,8 @@ class ReceptionCreateAppointments(APIView):
 
 
 class ReceptionAppointmentDetail(APIView):
+    permission_classes = (IsPatient,)
+
     def get(self, request, pk):
         appointment = Appointment.objects.filter(pk=pk).first()
         if not appointment:
@@ -80,6 +87,8 @@ class ReceptionAppointmentDetail(APIView):
 
 
 class ReceptionAppointmentsList(ListAPIView):
+    permission_classes = (IsPatient,)
+
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
 

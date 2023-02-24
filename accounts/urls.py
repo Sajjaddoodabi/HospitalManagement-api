@@ -11,7 +11,7 @@ urlpatterns = [
     path('doctor/doctor-category/', DoctorCategories.as_view()),
     path('patient/', PatientDetail.as_view()),
     path('doctor/', DoctorDetail.as_view()),
-    path('doctor/doctor-accept/', DoctorAccept.as_view()),
+    path('doctor/doctor-accept/', DoctorApproval.as_view()),
     path('doctor/doctor-category/<int:pk>/', DoctorCategoryDetail.as_view()),
     path('doctor/doctor-category/add-category/', AddDoctorCategory.as_view()),
 ]
