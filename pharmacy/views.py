@@ -9,8 +9,8 @@ from Hospital.models import Appointment
 from accounts.models import Doctor
 from accounts.views import get_user
 from pharmacy.models import Prescription, Medicine
-from pharmacy.serializers import PrescriptionSerializer, MedicineSerializer, PrescriptionMiniSerializer, \
-    MedicineMiniSerializer
+from pharmacy.serializers import PrescriptionSerializer, MedicineSerializer, PrescriptionMiniIdSerializer, \
+    MedicineMiniSerializer, PrescriptionMiniSerializer
 
 
 class Pharmacy(APIView):
@@ -18,15 +18,19 @@ class Pharmacy(APIView):
 
 
 class AddPrescription(APIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     def post(self, request):
-        serializer = PrescriptionSerializer(data=request.data)
+        serializer = PrescriptionMiniSerializer(data=request.data)
         if serializer.is_valid():
             user = get_user(request)
             if user.role == 'DOC':
                 doctor = Doctor.objects.filter(parent_user=user).first()
                 appointment = Appointment.objects.filter(doctor=doctor, status='DO').first()
+
+                if appointment is None:
+                    response = {'message': 'There is no open appointment for this doctor at this time!'}
+                    return Response(response)
 
                 prescription = Prescription.objects.create(patient=appointment.patient, doctor=doctor)
                 prescription_ser = PrescriptionSerializer(prescription)
@@ -39,7 +43,7 @@ class AddPrescription(APIView):
 
 
 class PrescriptionDetail(APIView):
-    permission_classes = (IsPatient,)
+    # permission_classes = (IsPatient,)
 
     def get(self, request, pk):
         prescription = Prescription.objects.filter(pk=pk).first()
@@ -65,14 +69,14 @@ class PrescriptionDetail(APIView):
 
 
 class PrescriptionList(generics.ListAPIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
 
 
 class AddMedicine(APIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     def post(self, request):
         serializer = MedicineMiniSerializer(data=request.data)
@@ -86,7 +90,7 @@ class AddMedicine(APIView):
 
 
 class AddMedicineToPrescription(APIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     def post(self, request):
         serializer = MedicineSerializer(data=request.data)
@@ -99,25 +103,25 @@ class AddMedicineToPrescription(APIView):
             appointment = Appointment.objects.filter(doctor=doctor, status='DO').first()
             prescription = Prescription.objects.filter(doctor__appointment=appointment).first()
 
-            medicine = Medicine.objects.filter(title=title).first()
-            if medicine is not None:
-                medicine.prescription = prescription
-                medicine_ser = MedicineSerializer(medicine)
+            if prescription is None:
+                response = {'message': 'prescription does not exist!'}
+                return Response(response)
 
-                return Response(medicine_ser.data)
+            medicine_exist = Medicine.objects.filter(title=title, prescription_id=None).exists()
+            if medicine_exist is not None:
+                response = {'message': 'medicine does not exist!'}
+                return Response(response)
 
-            # medicine = Medicine.objects.create(title=title, prescription_id=prescription.id, count=1)
-            # medicine_ser = MedicineSerializer(medicine)
-            #
-            # return Response(medicine_ser.data)
-            response = {'message': 'prescription does not exist!'}
-            return Response(response)
+            medicine = Medicine.objects.create(title=title, prescription_id=prescription.id)
+            medicine_ser = MedicineSerializer(medicine)
+
+            return Response(medicine_ser.data)
 
         return Response(serializer.errors)
 
 
 class RemoveMedicineFromPrescription(APIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     def delete(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
@@ -133,7 +137,7 @@ class RemoveMedicineFromPrescription(APIView):
 
 
 class ChangeMedicineCount(APIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     def put(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
@@ -167,7 +171,7 @@ class ChangeMedicineCount(APIView):
 
 
 class MedicineDetail(APIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     def get(self, request, pk):
         medicine = Medicine.objects.filter(pk=pk).first()
@@ -205,17 +209,17 @@ class MedicineDetail(APIView):
 
 
 class MedicineList(generics.ListAPIView):
-    permission_classes = (IsDoctor, IsAdminUser)
+    # permission_classes = (IsDoctor, IsAdminUser)
 
     queryset = Medicine.objects.all()
     serializer_class = MedicineMiniSerializer
 
 
 class UpdatePrescriptionStatus(APIView):
-    permission_classes = (IsDoctor, IsAdminUser)
+    # permission_classes = (IsDoctor, IsAdminUser)
 
     def put(self, request, pk):
-        serializer = PrescriptionMiniSerializer(data=request.data)
+        serializer = PrescriptionMiniIdSerializer(data=request.data)
         if serializer.is_valid():
             prescription_status = request.data['status']
             prescription = Prescription.objects.filter(pk=pk).first()

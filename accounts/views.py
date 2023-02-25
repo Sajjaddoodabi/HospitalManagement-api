@@ -3,6 +3,7 @@ import datetime
 import jwt
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -18,7 +19,7 @@ from .permissions import *
 
 
 class DoctorRegisterView(APIView):
-    permission_classes = (IsNotAuthenticated,)
+    # permission_classes = (IsNotAuthenticated,)
 
     def post(self, request):
         try:
@@ -62,7 +63,7 @@ class DoctorRegisterView(APIView):
 
 
 class PatientRegisterView(APIView):
-    permission_classes = (IsNotAuthenticated,)
+    # permission_classes = (IsNotAuthenticated,)
 
     def post(self, request):
         try:
@@ -94,7 +95,7 @@ class PatientRegisterView(APIView):
 
 
 class LoginView(APIView):
-    permission_classes = (IsNotAuthenticated,)
+    # permission_classes = (IsNotAuthenticated,)
 
     def post(self, request):
         email = request.data['email']
@@ -123,7 +124,7 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         response = Response()
@@ -136,7 +137,7 @@ class LogoutView(APIView):
 
 
 class ChangePassword(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def put(self, request):
         user = get_user(request)
@@ -161,7 +162,8 @@ class ChangePassword(APIView):
 
 
 class UserView(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication,)
 
     def get(self, request):
         user = get_user(request)
@@ -174,6 +176,8 @@ class UserView(APIView):
         elif user.role == 'DOC':
             doctor = Doctor.objects.filter(parent_user_id=user.id).first()
             serializer = DoctorSerializer(doctor)
+        elif user.role == 'ADM':
+            serializer = UserSerializer(user)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -192,28 +196,28 @@ def get_user(request):
 
 
 class DoctorDetail(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     queryset = Doctor.objects.filter(parent_user__status=True)
     serializer_class = DoctorSerializer
 
 
 class PatientDetail(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsPatient,)
+    # permission_classes = (IsPatient,)
 
     queryset = Patient.objects.filter(parent_user__status=True)
     serializer_class = PatientSerializer
 
 
 class AddDoctorCategory(CreateAPIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     queryset = DoctorCategory.objects.all()
     serializer_class = DoctorCategorySerializer
 
 
 class DoctorCategoryDetail(APIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     def get(self, request, pk):
         category = DoctorCategory.objects.filter(pk=pk).first()
@@ -250,7 +254,7 @@ class DoctorCategoryDetail(APIView):
 
 
 class DoctorCategories(ListAPIView):
-    permission_classes = (IsAdminOrReadOnly,)
+    # permission_classes = (IsAdminOrReadOnly,)
 
     queryset = DoctorCategory.objects.filter(is_active=True)
     serializer_class = DoctorCategorySerializer
@@ -262,7 +266,7 @@ class AppointmentTimeDetail(RetrieveUpdateDestroyAPIView):
 
 
 class DoctorApproval(APIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     def put(self, request, pk):
         doctor = Doctor.objects.filter(pk=pk).first()

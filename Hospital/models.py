@@ -28,7 +28,7 @@ class Appointment(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.doctor.get_name} - {self.patient.get_name} - {self.appointment_time}'
+        return f'{self.doctor.parent_user.get_name} - {self.patient.parent_user.get_name} - {self.appointment_time}'
 
 
 class TimesForTheDay(models.Model):
@@ -37,4 +37,4 @@ class TimesForTheDay(models.Model):
     day = models.DateField(default=datetime.date.today())
 
     def __str__(self):
-        return f'{self.Doctor.get_name} - {self.times}'
+        return f'{self.Doctor.parent_user.get_name} - {self.times}'

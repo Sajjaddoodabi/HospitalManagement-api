@@ -20,7 +20,7 @@ class Reception(APIView):
 
 
 class ReceptionCreateAppointments(APIView):
-    permission_classes = (IsPatient,)
+    # permission_classes = (IsPatient,)
 
     def post(self, request):
         serializer = AppointmentSerializer(data=request.data)
@@ -60,7 +60,7 @@ class ReceptionCreateAppointments(APIView):
 
 
 class ReceptionAppointmentDetail(APIView):
-    permission_classes = (IsPatient,)
+    # permission_classes = (IsPatient,)
 
     def get(self, request, pk):
         appointment = Appointment.objects.filter(pk=pk).first()
@@ -87,14 +87,14 @@ class ReceptionAppointmentDetail(APIView):
 
 
 class ReceptionAppointmentsList(ListAPIView):
-    permission_classes = (IsDoctor,)
+    # permission_classes = (IsDoctor,)
 
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
 
 
 class UpdateAppointmentStatus(APIView):
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
 
     def put(self, request, pk):
         serializer = AppointmentMiniSerializer(data=request.data)

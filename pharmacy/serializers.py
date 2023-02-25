@@ -37,7 +37,16 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'doctor', 'patient', 'medicine', 'is_active', 'status')
 
 
-class PrescriptionMiniSerializer(serializers.ModelSerializer):
+class PrescriptionMiniIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prescription
         fields = ('id', 'status')
+
+
+class PrescriptionMiniSerializer(serializers.ModelSerializer):
+    patient = PatientMiniSerializer(read_only=True)
+    doctor = DoctorMiniSerializer(read_only=True)
+
+    class Meta:
+        model = Prescription
+        fields = ('id', 'doctor', 'patient')
